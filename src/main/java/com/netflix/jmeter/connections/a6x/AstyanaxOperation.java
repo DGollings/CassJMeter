@@ -17,6 +17,8 @@ import com.netflix.astyanax.connectionpool.exceptions.NotFoundException;
 import com.netflix.astyanax.model.Column;
 import com.netflix.astyanax.model.ColumnFamily;
 import com.netflix.astyanax.model.ColumnList;
+import com.netflix.astyanax.model.Row;
+import com.netflix.astyanax.model.Rows;
 import com.netflix.astyanax.serializers.AbstractSerializer;
 import com.netflix.astyanax.serializers.ByteBufferSerializer;
 import com.netflix.astyanax.serializers.LongSerializer;
@@ -165,6 +167,58 @@ public class AstyanaxOperation implements Operation
 
         return new AstyanaxResponseData(response.toString(), bytes, opResult, rkey, colName, null);
     }
+    
+	@Override
+	public ResponseData getByIndex(Object ikey, Object colName)
+			throws OperationException
+	{
+		String indexKey = ((String) ikey).trim();
+		String indexColumnName = ((String) colName).trim();
+
+		StringBuffer response = new StringBuffer();
+		int bytes = 0;
+		OperationResult<Rows<Object, Object>> opResult = null;
+		try
+		{
+			opResult = AstyanaxConnection.instance.keyspace().prepareQuery(cfs)
+					.searchWithIndex().addExpression()
+					.whereColumn(indexColumnName).equals().value(indexKey)
+					.execute();
+
+			//TODO
+			bytes = 0;
+
+			boolean init = true;
+			for (Row<Object, Object> row : opResult.getResult())
+			{
+				if (init)
+				{
+					response.append("[Key]\t");
+					response.append(row.getColumns().getColumnNames());
+					response.append("\n");
+					init = false;
+				}
+				response.append(java.util.UUID.nameUUIDFromBytes(row
+						.getRawKey().array()));
+				for (Column<Object> c : row.getColumns())
+				{
+					response.append(",");
+					response.append(c.getStringValue());
+				}
+			}
+		}
+		catch (NotFoundException ex)
+		{
+			// ignore this because nothing is available to show
+			response.append("...Not found...");
+		}
+		catch (ConnectionException e)
+		{
+			throw new OperationException(e);
+		}
+		return new AstyanaxResponseData(response.toString(), bytes, opResult,
+				ikey, colName, null);
+	}
 
     @Override
     public ResponseData getComposite(String key, String colName) throws OperationException

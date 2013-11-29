@@ -131,6 +131,12 @@ public class ThriftOperation implements Operation
     }
 
     @Override
+    public ResponseData getByIndex(Object ikey, Object colName)
+    {
+        return null;
+    }
+
+    @Override
     public ResponseData rangeSlice(Object rKey, Object startColumn, Object endColumn, boolean reversed, int count) throws OperationException
     {
         ByteBuffer key = kser.toByteBuffer(rKey);

@@ -267,7 +267,7 @@ public abstract class AbstractSampler extends org.apache.jmeter.samplers.Abstrac
         {
             this(response, size, constructRequest(host, key, kv), latency);
         }
-        
+
         private static String constructRequest(String host, Object key, Object cn, Object value)
         {
             StringBuffer buff = new StringBuffer();
@@ -284,11 +284,11 @@ public abstract class AbstractSampler extends org.apache.jmeter.samplers.Abstrac
                 appendKeyValue(buff, entry.getKey(), entry.getValue());
             return buff.toString();
         }
-        
+
         private static void appendHostAndRowKey(StringBuffer buff, String host, Object key)
         {
             buff.append(EXECUTED_ON).append(host).append(SystemUtils.NEW_LINE);
-            buff.append(ROW_KEY).append(key).append(SystemUtils.NEW_LINE);            
+            buff.append(ROW_KEY).append(key).append(SystemUtils.NEW_LINE);
         }
 
         private static void appendKeyValue(StringBuffer buff, Object cn, Object value)

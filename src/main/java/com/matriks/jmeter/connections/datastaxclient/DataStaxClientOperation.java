@@ -71,10 +71,10 @@ public class DataStaxClientOperation implements Operation {
 		Session session = DataStaxClientConnection.instance.session();
 		TableMetadata tm = DataStaxClientConnection.instance.getKeyspaceMetadata().getTable(cfName);
 		String partitionKey = tm.getPartitionKey().get(0).getName();
-		
+
 		Query query = QueryBuilder.select(colName.toString()).from(cfName).where(QueryBuilder.eq(partitionKey, rkey)).limit(1000000)
 				.setConsistencyLevel(ConsistencyLevel.valueOf(com.netflix.jmeter.properties.Properties.instance.cassandra.getReadConsistency()));
-		
+
 		ResultSetFuture rs = session.executeAsync(query);
 
 		int size = 0;
@@ -89,6 +89,13 @@ public class DataStaxClientOperation implements Operation {
 
 		return new DataStaxClientResponseData("", size, "", 0, rkey, colName, null);
 	}
+
+    @Override
+    public ResponseData getByIndex(Object ikey, Object colName)
+    {
+        // TODO
+        return null;
+    }
 
 	@Override
 	public ResponseData rangeSlice(Object rKey, Object startColumn, Object endColumn, boolean reversed, int count) throws OperationException {
@@ -120,14 +127,14 @@ public class DataStaxClientOperation implements Operation {
 		String clusteredKey = colList[0];
 		String clusteredValue = colList[1];
 		String colName = colList[2];
-		
+
 		Long start = System.nanoTime();
-		
+
 		ResultSetFuture rs = session.executeAsync(QueryBuilder.select(colName).from(cfName).where(QueryBuilder.eq(partitionKey, partitionValue))
 				.and(QueryBuilder.eq(clusteredKey, clusteredValue)).limit(1000000));
-		
+
 		int size = 0;
-		
+
 		try {
 			Row row = rs.getUninterruptibly(1000000, TimeUnit.MILLISECONDS).one();
 			size = row != null ? row.getBytesUnsafe(colName.toString()).capacity() : 0;
@@ -137,9 +144,9 @@ public class DataStaxClientOperation implements Operation {
 			e.printStackTrace();
 			throw new OperationException(e);
 		}
-		
+
 		Long duration = System.nanoTime() - start;
-		
+
 		return new DataStaxClientResponseData("", size, "", TimeUnit.MILLISECONDS.convert(duration, TimeUnit.NANOSECONDS), key, compositeColName, null);
 	}
 
